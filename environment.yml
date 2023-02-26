@@ -175,6 +175,11 @@ dependencies:
   - zipp=3.4.1=pyhd3eb1b0_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.9=haebb681_0
+  - r-base=4.2
+  - r-tidyverse
+  - r-vcfR
+  - r-plotly
+  - r-htmlwidgets
   - pip:
     - catfishq==1.1.3
     - cycler==0.10.0
@@ -199,3 +204,4 @@ dependencies:
   - pip:
     - catfishq
     - numpy==1.19.5
+
