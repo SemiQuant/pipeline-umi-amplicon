@@ -28,7 +28,6 @@ raw_vcf <- raw_vcf %>%
 vcf <- umi_vcf %>% 
   full_join(raw_vcf, by = join_by(ChromKey, POS, CHROM, ID, REF, ALT))
 
-
 vcf_plt <- vcf %>% 
   plot_ly(x = ~POS, y = ~gt_FREQ.x, color = ~ALT, type = "bar") %>% 
   add_trace(y = ~gt_FREQ.y*-1) %>% 
