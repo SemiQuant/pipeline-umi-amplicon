@@ -28,15 +28,18 @@ raw_vcf <- raw_vcf %>%
 vcf <- umi_vcf %>% 
   full_join(raw_vcf, by = join_by(ChromKey, POS, CHROM, ID, REF, ALT))
 
+
 vcf_plt <- vcf %>% 
-  plot_ly(x = ~POS, y = ~gt_FREQ.x, color = ~ALT, type = "bar") %>% 
+  plot_ly(x = ~POS, y = ~gt_FREQ.x, color = ~ALT, type = "bar",
+          hovertemplate = paste('<i>Percentage</i>: %{y}',
+                                '<br><br>')) %>% 
   add_trace(y = ~gt_FREQ.y*-1) %>% 
   layout(yaxis = list(title = "Raw variants        |  Percentage  |        UMI corrected"),
          xaxis = list(title = "Position in amplicon"),
          title = unique(umi_vcf$CHROM)
          ) %>% 
-  layout(barmode = 'group', yaxis = list(range = c(-100, 100)))
-
+  layout(barmode = 'group', yaxis = list(range = c(-100, 100))) %>% 
+  layout(hovermode = "x unified")
 
 saveWidget(as_widget(vcf_plt), paste0(out_file, ".html"), selfcontained = T)
 
