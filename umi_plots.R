@@ -35,7 +35,9 @@ vcf_plt <- vcf %>%
   layout(yaxis = list(title = "Raw variants        |  Percentage  |        UMI corrected"),
          xaxis = list(title = "Position in amplicon"),
          title = unique(umi_vcf$CHROM)
-         )
+         ) %>% 
+  layout(barmode = 'group', yaxis = list(range = c(-100, 100)))
+
 
 saveWidget(as_widget(vcf_plt), paste0(out_file, ".html"), selfcontained = T)
 
