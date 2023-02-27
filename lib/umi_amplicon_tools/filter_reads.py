@@ -133,10 +133,8 @@ def filter_reads(args):
     if n_total:
         unmapped_perc = int(100.0 * unmapped_perc / n_total)
     logging.info("Reads unmapped: {} ({}%)".format(n_unmapped, unmapped_perc))
-    if unmapped_perc >= 99:
-        break
-    else:
 
+    if unmapped_perc <= 99:
         with pysam.AlignmentFile(bam_file, "rb") as bam:
             for region in parse_bed(bed_regions):
                 logging.info(region["name"])
