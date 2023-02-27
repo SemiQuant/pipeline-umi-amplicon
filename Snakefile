@@ -148,6 +148,7 @@ rule map_1d:
         """
 
 # Split reads by amplicons
+# change the code for umi_filter_reads to allow for missing amplicon alignemnt, then revert the below edits
 rule split_reads:
     input:
         "{name}/align/1_d.bam"
@@ -177,7 +178,10 @@ rule map_consensus:
     threads: 3
     shell:
         """
+        #if $(wc -l "{name}/fasta/{target}_{type}.fasta") -gt 1
+        #then
         minimap2 {params.minimap2_param} -t {threads} {input.REF} {input.FA} | samtools sort -@ 5 -o {output.BAM} - && samtools index -@ {threads} {output.BAM}
+        #fi
         """
 
 
