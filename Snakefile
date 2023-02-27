@@ -161,6 +161,15 @@ rule split_reads:
         """
         mkdir -p {output.DIR}
         umi_filter_reads --min_overlap {params.min_overlap} -o {output.DIR} {params.bed} {input} 2>&1 | tee {output.STATS}
+        # continue shell on fail 
+        exitcode=$?
+        if [ $exitcode -eq 0 ]
+        then
+            exit 0
+        else
+            echo "error but continuing"
+            exit 0
+        fi
         """
 
 
@@ -335,15 +344,3 @@ rule plots:
         "scripts/umi_plots.R"
 
 
-# continue shell on fail 
-#     shell:
-#         """
-        # exitcode=$?
-        # if [ $exitcode -eq 0 ]
-        # then
-        #     exit 0
-        # else
-        #     echo "error but continuing"
-        #     exit 0
-        # fi
-#         """
