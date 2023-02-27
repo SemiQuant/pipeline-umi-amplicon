@@ -129,67 +129,70 @@ def filter_reads(args):
     n_ontarget = 0
     n_total, n_unmapped = count_reads(bam_file)
 
-    logging.info("Reads found: {}".format(n_total))
-    unmapped_perc = 0
-    if n_total:
-        unmapped_perc = int(100.0 * unmapped_perc / n_total)
+    if n_total <=2:
+        break
+    else:
+        logging.info("Reads found: {}".format(n_total))
+        unmapped_perc = 0
+        if n_total:
+            unmapped_perc = int(100.0 * unmapped_perc / n_total)
 
-    logging.info("Reads unmapped: {} ({}%)".format(n_unmapped, unmapped_perc))
+        logging.info("Reads unmapped: {} ({}%)".format(n_unmapped, unmapped_perc))
 
-    with pysam.AlignmentFile(bam_file, "rb") as bam:
-        for region in parse_bed(bed_regions):
-            logging.info(region["name"])
-            n_reads_region = 0
-            output_fastq = os.path.join(
-                output_folder, "{}.fastq".format(region["name"])
-            )
-            with open(output_fastq, "w") as out:
-                region_length = region["end"] - region["start"]
-                for read in bam.fetch(
-                    contig=region["chr"], start=region["start"], stop=region["end"]
-                ):
-                    if read.is_secondary and not incl_sec:
-                        continue
-                    if read.is_supplementary:
-                        continue
-
-                    n_ontarget += 1
-                    if read.query_alignment_length < (
-                        read.query_length - 2 * max_clipping
+        with pysam.AlignmentFile(bam_file, "rb") as bam:
+            for region in parse_bed(bed_regions):
+                logging.info(region["name"])
+                n_reads_region = 0
+                output_fastq = os.path.join(
+                    output_folder, "{}.fastq".format(region["name"])
+                )
+                with open(output_fastq, "w") as out:
+                    region_length = region["end"] - region["start"]
+                    for read in bam.fetch(
+                        contig=region["chr"], start=region["start"], stop=region["end"]
                     ):
-                        n_concatamer += 1
-                        continue
+                        if read.is_secondary and not incl_sec:
+                            continue
+                        if read.is_supplementary:
+                            continue
 
-                    if read.reference_length < (region_length * min_overlap):
-                        n_short += 1
-                        continue
-                    n_reads_region += 1
+                        n_ontarget += 1
+                        if read.query_alignment_length < (
+                            read.query_length - 2 * max_clipping
+                        ):
+                            n_concatamer += 1
+                            continue
 
-                    read_strand = "+"
-                    if read.is_reverse:
-                        read_strand = "-"
-                    print(
-                        ">{} strand={}".format(read.query_name, read_strand), file=out
-                    )
-                    if read.is_reverse:
-                        print(rev_comp(read.query_sequence), file=out)
-                    else:
-                        print(read.query_sequence, file=out)
+                        if read.reference_length < (region_length * min_overlap):
+                            n_short += 1
+                            continue
+                        n_reads_region += 1
 
-            logging.info("Reads found: {}".format(n_reads_region))
+                        read_strand = "+"
+                        if read.is_reverse:
+                            read_strand = "-"
+                        print(
+                            ">{} strand={}".format(read.query_name, read_strand), file=out
+                        )
+                        if read.is_reverse:
+                            print(rev_comp(read.query_sequence), file=out)
+                        else:
+                            print(read.query_sequence, file=out)
 
-    ontarget_perc = 0
-    if n_total:
-        ontarget_perc = int(100.0 * n_ontarget / n_total)
+                logging.info("Reads found: {}".format(n_reads_region))
 
-    concatermer_perc = 0
-    if n_ontarget:
-        concatermer_perc = int(100.0 * n_concatamer / n_ontarget)
-    if n_ontarget:
-        short_perc = int(100.0 * n_short / n_ontarget)
-    logging.info("On target: {} ({}%)".format(n_ontarget, ontarget_perc))
-    logging.info("{} concatamers - {}%".format(n_concatamer, concatermer_perc))
-    logging.info("{} short - {}%".format(n_short, short_perc))
+        ontarget_perc = 0
+        if n_total:
+            ontarget_perc = int(100.0 * n_ontarget / n_total)
+
+        concatermer_perc = 0
+        if n_ontarget:
+            concatermer_perc = int(100.0 * n_concatamer / n_ontarget)
+        if n_ontarget:
+            short_perc = int(100.0 * n_short / n_ontarget)
+        logging.info("On target: {} ({}%)".format(n_ontarget, ontarget_perc))
+        logging.info("{} concatamers - {}%".format(n_concatamer, concatermer_perc))
+        logging.info("{} short - {}%".format(n_short, short_perc))
 
 
 def main(argv=sys.argv[1:]):
