@@ -6,7 +6,7 @@ Copyright (c) 2020 by Oxford Nanopore Technologies Ltd.
 import os
 from setuptools import setup
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 setup(
     name='umi-amplicon-tools',

@@ -128,16 +128,14 @@ def filter_reads(args):
     n_short = 0
     n_ontarget = 0
     n_total, n_unmapped = count_reads(bam_file)
-
-    if n_total <=2:
+    logging.info("Reads found: {}".format(n_total))
+    unmapped_perc = 0
+    if n_total:
+        unmapped_perc = int(100.0 * unmapped_perc / n_total)
+    logging.info("Reads unmapped: {} ({}%)".format(n_unmapped, unmapped_perc))
+    if unmapped_perc >= 99:
         break
     else:
-        logging.info("Reads found: {}".format(n_total))
-        unmapped_perc = 0
-        if n_total:
-            unmapped_perc = int(100.0 * unmapped_perc / n_total)
-
-        logging.info("Reads unmapped: {} ({}%)".format(n_unmapped, unmapped_perc))
 
         with pysam.AlignmentFile(bam_file, "rb") as bam:
             for region in parse_bed(bed_regions):
