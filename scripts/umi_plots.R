@@ -41,7 +41,7 @@ vcf_plt <- vcf %>%
   layout(barmode = 'group', yaxis = list(range = c(-100, 100))) %>% 
   layout(hovermode = "x unified")
 
-saveWidget(as_widget(vcf_plt), paste0(out_file, ".html"), selfcontained = T)
+saveWidget(as_widget(vcf_plt), out_file, selfcontained = T)
 
 
 

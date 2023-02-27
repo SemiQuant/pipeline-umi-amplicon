@@ -327,7 +327,7 @@ rule plots:
         RAW = "{name}/variants/1_d.vcf.gz",
         UMI = "{name}/variants/{target}_final.vcf"
     output:
-        OUTF = "{name}/variants/{target}.vcf"
+        OUTF = "{name}/variants/{target}.html"
     script:
         "scripts/umi_plots.R"
 
