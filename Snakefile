@@ -248,7 +248,7 @@ rule reformat_consensus_clusters:
     output:
         "{name}/fasta/{target}_final.fasta"
     shell:
-        """"
+        """
         cat {input} | umi_reformat_consensus > {output}
         """
 
@@ -322,9 +322,10 @@ rule seqkit_bam_acc_tsv:
         """
         echo -e "Read\tCluster_size\tRef\tMapQual\tAcc\tReadLen\tRefLen\tRefAln\tRefCov\tReadAln\tReadCov\tStrand\tMeanQual\tLeftClip\tRightClip\tFlags\tIsSec\tIsSup" > {output} && seqkit bam {input} 2>&1 | sed 's/_/\t/' | tail -n +2 >> {output}
         """
+
 rule plots:
     input:
-        RAW = "{name}/variants/1_d.vcf.gz",
+        RAW = "{name}/variants/1_d.vcf",
         UMI = "{name}/variants/{target}_final.vcf"
     output:
         OUTF = "{name}/variants/{target}.html"
@@ -335,12 +336,12 @@ rule plots:
 # continue shell on fail 
 #     shell:
 #         """
-#         exitcode=$?
-#         if [ $exitcode -eq 0 ]
-#         then
-#             exit 0
-#         else
-#             echo "error but continuing"
-#             exit 0
-#         fi
+        # exitcode=$?
+        # if [ $exitcode -eq 0 ]
+        # then
+        #     exit 0
+        # else
+        #     echo "error but continuing"
+        #     exit 0
+        # fi
 #         """
