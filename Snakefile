@@ -126,40 +126,23 @@ rule filter_reads:
         else
             cp {input.FQ} {output.FQ}
         fi
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
-# map all and call variants for non-UMI corrected
+
 rule map_1d:
     input:
         FQ = "{name}/read.filt.fastq.gz",
         REF = reference_fasta
     params:
         read_number = subset_reads,
-        minimap2_param = minimap2_param,
-        varscan_params = varscan_params
+        minimap2_param = minimap2_param
     output:
         BAM = "{name}/align/1_d.bam",
-        BAI = "{name}/align/1_d.bam.bai",
-        VCF = "{name}/variants/1_d.vcf"
-    threads: 8
+        BAI = "{name}/align/1_d.bam.bai"
+    threads: 30
     shell:
         """
         catfishq --max_n {params.read_number} {input.FQ} | minimap2 {params.minimap2_param} -t {threads} {input.REF} - | samtools sort -@ {threads} -o {output.BAM} - && samtools index -@ {threads} {output.BAM}
         rm {input.FQ} #because this is a copy now
-        samtools mpileup -q 0 -Q 0 -B -d 10000000 -A -f {input.REF} {output.BAM} | varscan mpileup2cns {params.varscan_params} > {output.VCF}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 # Split reads by amplicons
@@ -176,13 +159,6 @@ rule split_reads:
         """
         mkdir -p {output.DIR}
         umi_filter_reads --min_overlap {params.min_overlap} -o {output.DIR} {params.bed} {input} 2>&1 | tee {output.STATS}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 
@@ -200,13 +176,6 @@ rule map_consensus:
     shell:
         """
         minimap2 {params.minimap2_param} -t {threads} {input.REF} {input.FA} | samtools sort -@ 5 -o {output.BAM} - && samtools index -@ {threads} {output.BAM}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 
@@ -224,13 +193,6 @@ rule detect_umi_fasta:
     shell:
         """
         umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input}/{wildcards.target}.fastq -o {output} --tsv {output}.tsv
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule detect_umi_consensus_fasta:
@@ -247,13 +209,6 @@ rule detect_umi_consensus_fasta:
     shell:
         """
         umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input} -o {output} --tsv {output}.tsv
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule cluster:
@@ -269,15 +224,7 @@ rule cluster:
     shell:
         """
         mkdir -p {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
-
 
 
 rule cluster_consensus:
@@ -293,13 +240,6 @@ rule cluster_consensus:
     shell:
         """
         mkdir -p {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule reformat_consensus_clusters:
@@ -310,13 +250,6 @@ rule reformat_consensus_clusters:
     shell:
         """"
         cat {input} | umi_reformat_consensus > {output}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 
@@ -335,13 +268,6 @@ rule reformat_filter_clusters:
     shell:
         """
         umi_parse_clusters --smolecule_out {output.out_file} {params.balance_strands_param} --min_reads_per_clusters {params.min_reads_per_cluster} --max_reads_per_clusters {params.max_reads_per_cluster} --stats_out {output.stats} -o {output.out_dir} {input}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 
@@ -362,13 +288,6 @@ rule polish_clusters:
         medaka smolecule --threads {threads} --length 50 --depth 2 --model {params.medaka_model} --method spoa {input.I2} {output.FOLDER} 2> {output.BAM}_smolecule.log
         cp {output.FOLDER}/consensus.fasta {output.F}
         cp {output.FOLDER}/subreads_to_spoa.bam {output.BAM} && cp {output.FOLDER}/subreads_to_spoa.bam.bai {output.BAM}.bai
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule call_variants:
@@ -382,13 +301,6 @@ rule call_variants:
     shell:
         """
         samtools mpileup -q 0 -Q 0 -B -d 10000000 -A -f {input.REF} {input.BAM} | varscan mpileup2cns {params.varscan_params} > {output}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule index_variants:
@@ -399,13 +311,6 @@ rule index_variants:
     shell:
         """
         bedtools sort -header -i {input} | bgzip > {output} && tabix {output}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 
 rule seqkit_bam_acc_tsv:
@@ -416,25 +321,26 @@ rule seqkit_bam_acc_tsv:
     shell:
         """
         echo -e "Read\tCluster_size\tRef\tMapQual\tAcc\tReadLen\tRefLen\tRefAln\tRefCov\tReadAln\tReadCov\tStrand\tMeanQual\tLeftClip\tRightClip\tFlags\tIsSec\tIsSup" > {output} && seqkit bam {input} 2>&1 | sed 's/_/\t/' | tail -n +2 >> {output}
-        if [ $exitcode -eq 0 ]
-        then
-            exit 0
-        else
-            echo "error but continuing"
-            exit 0
-        fi
         """
 rule plots:
     input:
-        RAW = "{name}/variants/{target}.vcf",
+        RAW = "{name}/variants/1_d.vcf.gz",
         UMI = "{name}/variants/{target}_final.vcf"
     output:
-        OUTF = "{name}/variants/{target}_{type}.vcf"
+        OUTF = "{name}/variants/{target}.vcf"
     script:
         "scripts/umi_plots.R"
 
 
-
-
-
-
+# continue shell on fail 
+#     shell:
+#         """
+#         exitcode=$?
+#         if [ $exitcode -eq 0 ]
+#         then
+#             exit 0
+#         else
+#             echo "error but continuing"
+#             exit 0
+#         fi
+#         """
