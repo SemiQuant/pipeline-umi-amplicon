@@ -129,9 +129,6 @@ def filter_reads(args):
     n_ontarget = 0
     n_total, n_unmapped = count_reads(bam_file)
 
-    if n_total <= 2:
-        quit()
-
     logging.info("Reads found: {}".format(n_total))
     unmapped_perc = 0
     if n_total:
