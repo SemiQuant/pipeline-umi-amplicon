@@ -141,7 +141,7 @@ rule map_1d:
         REF = reference_fasta
     params:
         read_number = subset_reads,
-        minimap2_param = minimap2_param
+        minimap2_param = minimap2_param,
         varscan_params = varscan_params
     output:
         BAM = "{name}/align/1_d.bam",
@@ -427,11 +427,11 @@ rule seqkit_bam_acc_tsv:
 rule plots:
     input:
         RAW = "{name}/variants/{target}.vcf",
-        UMI = "{name}/variants/{target}_final.vcf",
+        UMI = "{name}/variants/{target}_final.vcf"
     output:
         OUTF = "{name}/variants/{target}_{type}.vcf"
     script:
-        umi_plots.R
+        "scripts/umi_plots.R"
 
 
 
