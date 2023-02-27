@@ -1,6 +1,7 @@
 raw_vcf <- snakemake@input[['RAW']]
 umi_vcf <- snakemake@input[['UMI']]
 out_file <- snakemake@output[['OUTF']]
+# system('export HOME="/home"') #for pandoc
 
 require(vcfR)
 require(tidyverse)
@@ -26,8 +27,7 @@ raw_vcf <- raw_vcf %>%
   filter(CHROM == unique(umi_vcf$CHROM))
 
 vcf <- umi_vcf %>% 
-  full_join(raw_vcf, by = join_by(ChromKey, POS, CHROM, ID, REF, ALT))
-
+  full_join(raw_vcf, by = c("ChromKey", "POS", "CHROM", "ID", "REF", "ALT"))
 
 vcf_plt <- vcf %>% 
   plot_ly(x = ~POS, y = ~gt_FREQ.x, color = ~ALT, type = "bar",
@@ -41,7 +41,7 @@ vcf_plt <- vcf %>%
   layout(barmode = 'group', yaxis = list(range = c(-100, 100))) %>% 
   layout(hovermode = "x unified")
 
-saveWidget(as_widget(vcf_plt), out_file, selfcontained = T)
+saveWidget(as_widget(vcf_plt), out_file, selfcontained = F)
 
 
 

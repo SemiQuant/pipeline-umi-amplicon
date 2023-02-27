@@ -181,6 +181,7 @@ dependencies:
   # - r-vcfR
   # - r-plotly
   # - r-htmlwidgets
+  # - pandoc
   - pip:
     - catfishq==1.1.3
     - cycler==0.10.0

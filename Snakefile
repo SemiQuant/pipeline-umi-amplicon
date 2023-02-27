@@ -77,7 +77,8 @@ rule reads:
 
 rule variants:
     input:
-        expand("{name}/variants/{target}_final.vcf.gz", name=sample_name, target=target)
+        expand("{name}/variants/{target}_final.vcf.gz", name=sample_name, target=target),
+        expand("{name}/variants/{target}.html", name=sample_name, target=target)
 
 rule all:
     input:
@@ -88,6 +89,7 @@ rule all:
         expand("{name}/variants/{target}_consensus.vcf.gz", name=sample_name, target=target),
         expand("{name}/variants/{target}_d.vcf.gz", name=sample_name, target="1"),
         expand("{name}/stats/{target}_consensus_size_vs_acc.tsv", name=sample_name, target=target),
+        expand("{name}/variants/{target}.html", name=sample_name, target=target),
 
 rule copy_bed:
     input:
