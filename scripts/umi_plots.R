@@ -41,6 +41,47 @@ vcf_plt <- vcf %>%
   layout(barmode = 'group', yaxis = list(range = c(-100, 100))) %>% 
   layout(hovermode = "x unified")
 
+
+
+vcf_lng <- vcf %>% 
+  select(POS, gt_FREQ.x, gt_FREQ.y) %>% 
+  pivot_longer(cols = c(gt_FREQ.x, gt_FREQ.y),
+               values_to = "freq"
+               )
+
+vcf_lng <- vcf_lng %>% 
+  group_by(name) %>% 
+  mutate(gt_et_1 = sum(freq >= 1, na.rm = T)) %>% 
+  mutate(gt_et_5 = sum(freq >= 5, na.rm = T)) %>% 
+  mutate(gt_et_10 = sum(freq >= 10, na.rm = T))
+
+vcf_lng <- vcf_lng %>% 
+  ungroup() %>% 
+  select(name, gt_et_1, gt_et_5, gt_et_10) %>% 
+  unique()
+
+vcf_lng$name[vcf_lng$name == "gt_FREQ.x"] <- "UMI"  
+vcf_lng$name[vcf_lng$name == "gt_FREQ.y"] <- "RAW"
+
+
+vcf_tbl <- plot_ly(
+  type = 'table',
+  header = list(
+    values = c("≥1%","≥5%", "≥10%"),
+    align = c("center", "center", "center"),
+    line = list(width = 1, color = 'black'),
+    fill = list(color = c("grey", "grey", "grey")),
+    font = list(family = "Arial", size = 14, color = "white")
+  ),
+  cells = list(
+    values = rbind(vcf_lng$gt_et_1, vcf_lng$gt_et_5, vcf_lng$gt_et_10),
+    align = c("center", "center", "center"),
+    line = list(color = "black", width = 1),
+    font = list(family = "Arial", size = 12, color = c("black"))
+  ))
+
+vcf_plt <- subplot(vcf_plt, vcf_tbl,nrows = 1)
+
 saveWidget(as_widget(vcf_plt), out_file, selfcontained = F)
 
 
