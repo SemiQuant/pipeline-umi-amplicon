@@ -64,23 +64,42 @@ vcf_lng$name[vcf_lng$name == "gt_FREQ.x"] <- "UMI"
 vcf_lng$name[vcf_lng$name == "gt_FREQ.y"] <- "RAW"
 
 
-vcf_tbl <- plot_ly(
-  type = 'table',
-  header = list(
-    values = c("≥1%","≥5%", "≥10%"),
-    align = c("center", "center", "center"),
-    line = list(width = 1, color = 'black'),
-    fill = list(color = c("grey", "grey", "grey")),
-    font = list(family = "Arial", size = 14, color = "white")
-  ),
-  cells = list(
-    values = rbind(vcf_lng$gt_et_1, vcf_lng$gt_et_5, vcf_lng$gt_et_10),
-    align = c("center", "center", "center"),
-    line = list(color = "black", width = 1),
-    font = list(family = "Arial", size = 12, color = c("black"))
-  ))
 
-vcf_plt <- subplot(vcf_plt, vcf_tbl,nrows = 1)
+hline <- function(y = 0, color = "gray") {
+  list(
+    type = "line",
+    x0 = 0,
+    x1 = 1,
+    xref = "paper",
+    y0 = y,
+    y1 = y,
+    line = list(color = color, dash="dot", width = 0.1)
+  )
+}
+
+
+vcf_plt <- vcf_plt %>% 
+  layout(shapes = list(hline(1),
+                       hline(5),
+                       hline(10),
+                       hline(-1),
+                       hline(-5),
+                       hline(-10)
+                       )) %>% 
+  add_annotations(x = 0, 
+                   y = c(1, 5, 10,
+                         -1, -5, -10),
+                   xref = "x",
+                   yref = "y",
+                   text = c(as.character(vcf_lng[vcf_lng$name == "UMI", "gt_et_1"]),
+                            as.character(vcf_lng[vcf_lng$name == "UMI", "gt_et_5"]),
+                            as.character(vcf_lng[vcf_lng$name == "UMI", "gt_et_10"]),
+                            as.character(vcf_lng[vcf_lng$name == "RAW", "gt_et_1"]),
+                            as.character(vcf_lng[vcf_lng$name == "RAW", "gt_et_5"]),
+                            as.character(vcf_lng[vcf_lng$name == "RAW", "gt_et_10"])),
+                   font = list(color = 'grey'), 
+                   showarrow = F)
+
 
 saveWidget(as_widget(vcf_plt), out_file, selfcontained = F)
 
