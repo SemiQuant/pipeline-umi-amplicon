@@ -161,7 +161,7 @@ rule split_reads:
     shell:
         """
         mkdir -p {output.DIR}
-        umi_filter_reads --min_overlap {params.min_overlap} -o {output.DIR} {params.bed} {input} 2>&1 | tee {output.STATS} #|| true # continue shell on fail 
+        umi_filter_reads --min_overlap {params.min_overlap} -o {output.DIR} {params.bed} {input} 2>&1 | tee {output.STATS} || true # continue shell on fail 
         """
 
 
@@ -178,12 +178,8 @@ rule map_consensus:
     threads: 3
     shell:
         """
-        #if $(wc -l "{name}/fasta/{target}_{type}.fasta") -gt 1
-        #then
-        minimap2 {params.minimap2_param} -t {threads} {input.REF} {input.FA} | samtools sort -@ 5 -o {output.BAM} - && samtools index -@ {threads} {output.BAM} #|| true # continue shell on fail 
-        #fi
+        minimap2 {params.minimap2_param} -t {threads} {input.REF} {input.FA} | samtools sort -@ {threads} -o {output.BAM} - && samtools index -@ {threads} {output.BAM} || true # continue shell on fail 
         """
-
 
 rule detect_umi_fasta:
     input:
@@ -198,7 +194,7 @@ rule detect_umi_fasta:
         rev_umi = rev_umi,
     shell:
         """
-        umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input}/{wildcards.target}.fastq -o {output} --tsv {output}.tsv #|| true # continue shell on fail 
+        umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input}/{wildcards.target}.fastq -o {output} --tsv {output}.tsv || true # continue shell on fail 
         """
 
 rule detect_umi_consensus_fasta:
@@ -214,7 +210,7 @@ rule detect_umi_consensus_fasta:
         rev_umi = rev_umi,
     shell:
         """
-        umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input} -o {output} --tsv {output}.tsv #|| true # continue shell on fail 
+        umi_extract --fwd-context {params.fwd_context} --rev-context {params.rev_context} --fwd-umi {params.fwd_umi} --rev-umi {params.rev_umi} --max-error {params.errors} {input} -o {output} --tsv {output}.tsv || true # continue shell on fail 
         """
 
 rule cluster:
@@ -229,7 +225,7 @@ rule cluster:
     threads: 10
     shell:
         """
-        mkdir -p {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85 #|| true # continue shell on fail 
+        mkdir -p {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85 || true # continue shell on fail 
         """
 
 
@@ -245,7 +241,7 @@ rule cluster_consensus:
     threads: 10
     shell:
         """
-        mkdir -p {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85 #|| true # continue shell on fail 
+        mkdir -p {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters && vsearch --clusterout_id --clusters {wildcards.name}/clustering_consensus/{wildcards.target}/vsearch_clusters/test --centroids {output.CENT} --consout {output.CONS} --minseqlength {params.min_length} --maxseqlength {params.max_length} --qmask none --threads {threads} --cluster_fast {input} --clusterout_sort --gapopen 0E/5I --gapext 0E/2I --mismatch -8 --match 6 --iddef 0 --minwordmatches 0 -id 0.85 || true # continue shell on fail 
         """
 
 rule reformat_consensus_clusters:
@@ -255,7 +251,7 @@ rule reformat_consensus_clusters:
         "{name}/fasta/{target}_final.fasta"
     shell:
         """
-        cat {input} | umi_reformat_consensus > {output} #|| true # continue shell on fail 
+        cat {input} | umi_reformat_consensus > {output} || true # continue shell on fail 
         """
 
 
@@ -273,7 +269,7 @@ rule reformat_filter_clusters:
         out_file = "{name}/clustering/{target}/smolecule_clusters.fa"
     shell:
         """
-        umi_parse_clusters --smolecule_out {output.out_file} {params.balance_strands_param} --min_reads_per_clusters {params.min_reads_per_cluster} --max_reads_per_clusters {params.max_reads_per_cluster} --stats_out {output.stats} -o {output.out_dir} {input} #|| true # continue shell on fail 
+        umi_parse_clusters --smolecule_out {output.out_file} {params.balance_strands_param} --min_reads_per_clusters {params.min_reads_per_cluster} --max_reads_per_clusters {params.max_reads_per_cluster} --stats_out {output.stats} -o {output.out_dir} {input} || true # continue shell on fail 
         """
 
 
@@ -291,9 +287,9 @@ rule polish_clusters:
     shell:
         """
         rm -rf {output.FOLDER}
-        medaka smolecule --threads {threads} --length 50 --depth 2 --model {params.medaka_model} --method spoa {input.I2} {output.FOLDER} 2> {output.BAM}_smolecule.log #|| true # continue shell on fail 
-        cp {output.FOLDER}/consensus.fasta {output.F}
-        cp {output.FOLDER}/subreads_to_spoa.bam {output.BAM} && cp {output.FOLDER}/subreads_to_spoa.bam.bai {output.BAM}.bai
+        medaka smolecule --threads {threads} --length 50 --depth 2 --model {params.medaka_model} --method spoa {input.I2} {output.FOLDER} 2> {output.BAM}_smolecule.log || true # continue shell on fail 
+        cp {output.FOLDER}/consensus.fasta {output.F} || true # continue shell on fail 
+        cp {output.FOLDER}/subreads_to_spoa.bam {output.BAM} && cp {output.FOLDER}/subreads_to_spoa.bam.bai {output.BAM}.bai || true # continue shell on fail 
         """
 
 rule call_variants:
@@ -306,7 +302,7 @@ rule call_variants:
         varscan_params = varscan_params
     shell:
         """
-        samtools mpileup -q 0 -Q 0 -B -d 10000000 -A -f {input.REF} {input.BAM} | varscan mpileup2cns {params.varscan_params} > {output} #|| true # continue shell on fail 
+        samtools mpileup -q 0 -Q 0 -B -d 10000000 -A -f {input.REF} {input.BAM} | varscan mpileup2cns {params.varscan_params} > {output} || true # continue shell on fail 
         """
 
 rule index_variants:
@@ -316,7 +312,7 @@ rule index_variants:
         "{name}/variants/{target}_{type}.vcf.gz"
     shell:
         """
-        bedtools sort -header -i {input} | bgzip > {output} && tabix {output} #|| true # continue shell on fail 
+        bedtools sort -header -i {input} | bgzip > {output} && tabix {output} || true # continue shell on fail 
         """
 
 rule seqkit_bam_acc_tsv:
